@@ -1,6 +1,6 @@
-package ch.duerri.frontdemo.web.config;
+package ch.duerri.middledemo.web.config;
 
-import ch.duerri.frontdemo.core.ApplicationConstants;
+import ch.duerri.middledemo.core.ApplicationConstants;
 import io.netty.channel.ChannelOption;
 import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.handler.timeout.WriteTimeoutHandler;
@@ -25,10 +25,10 @@ public class WebClientConfig {
     @Bean
     public WebClient createWebClient() {
         TcpClient tcpClient = TcpClient.create()
-                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 8000)
+                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 1000)
                 .doOnConnected(connection ->
-                        connection.addHandlerLast(new ReadTimeoutHandler(8))
-                                .addHandlerLast(new WriteTimeoutHandler(8)));
+                        connection.addHandlerLast(new ReadTimeoutHandler(3))
+                                .addHandlerLast(new WriteTimeoutHandler(3)));
 
         return WebClient.builder()
                 .clientConnector(new ReactorClientHttpConnector(HttpClient.from(tcpClient)))

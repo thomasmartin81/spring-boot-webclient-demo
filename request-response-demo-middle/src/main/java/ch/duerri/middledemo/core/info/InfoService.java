@@ -3,11 +3,15 @@ package ch.duerri.middledemo.core.info;
 import ch.duerri.middledemo.core.ApplicationConstants;
 import ch.duerri.middledemo.core.info.response.EndInfoDataResponse;
 import ch.duerri.middledemo.core.info.response.MiddleInfoDataResponse;
+import io.netty.handler.timeout.ReadTimeoutException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.client.ClientRequest;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.server.ResponseStatusException;
+import reactor.core.publisher.Mono;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -21,16 +25,10 @@ public class InfoService {
     @Resource
     private HttpServletRequest request;
 
-    public InfoService() {
-        webClient = WebClient
-                .builder()
+    public InfoService(WebClient webClient) {
+        this.webClient = webClient
+                .mutate()
                 .baseUrl("http://localhost:8091/demo-end")
-                .filter((request, next) -> {
-                    ClientRequest filtered = ClientRequest.from(request)
-                            .header(ApplicationConstants.HTTP_HEADER_PARAMETER_REQUEST_ID, getRequestId())
-                            .build();
-                    return next.exchange(filtered);
-                })
                 .build();
     }
 
@@ -54,12 +52,17 @@ public class InfoService {
     }
 
     private EndInfoDataResponse getInfoDataFromEndService(String id) {
-        return webClient
-                .get()
-                .uri("/info/{id}", id)
-                .retrieve()
-                .bodyToMono(EndInfoDataResponse.class)
-                .block();
+        try {
+            return webClient
+                    .get()
+                    .uri("/info/{id}", id)
+                    .retrieve()
+                    .onStatus(HttpStatus::isError, response -> Mono.error(new ResponseStatusException(response.statusCode())))
+                    .bodyToMono(EndInfoDataResponse.class)
+                    .block();
+        } catch (ReadTimeoutException e) {
+            throw new HttpServerErrorException(HttpStatus.GATEWAY_TIMEOUT);
+        }
     }
 
     private String getInfoById(String id) {

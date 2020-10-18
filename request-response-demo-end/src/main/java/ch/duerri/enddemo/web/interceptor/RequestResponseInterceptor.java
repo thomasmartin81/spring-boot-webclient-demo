@@ -22,7 +22,7 @@ public class RequestResponseInterceptor extends HandlerInterceptorAdapter {
         request.setAttribute(ApplicationConstants.HTTP_HEADER_PARAMETER_REQUEST_ID, requestId);
         response.setHeader(ApplicationConstants.HTTP_HEADER_PARAMETER_REQUEST_ID, requestId);
 
-        logger.info("Incoming request. method, uri={}", request.getMethod(), getFullRequestUri(request));
+        logger.info("Incoming request. method={}, uri={}", request.getMethod(), getFullRequestUri(request));
         return true;
     }
 
@@ -37,6 +37,6 @@ public class RequestResponseInterceptor extends HandlerInterceptorAdapter {
 
     @Override
     public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) {
-        logger.info("Outgoing response. method, uri={},  statusCode={}", request.getMethod(), getFullRequestUri(request), response.getStatus());
+        logger.info("Outgoing response. method={}, uri={}, statusCode={}", request.getMethod(), getFullRequestUri(request), response.getStatus());
     }
 }

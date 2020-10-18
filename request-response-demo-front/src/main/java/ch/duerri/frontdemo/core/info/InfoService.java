@@ -5,8 +5,11 @@ import ch.duerri.frontdemo.core.info.response.FrontInfoDataResponse;
 import ch.duerri.frontdemo.core.info.response.MiddleInfoDataResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.server.ResponseStatusException;
+import reactor.core.publisher.Mono;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -50,13 +53,11 @@ public class InfoService {
     }
 
     private MiddleInfoDataResponse getInfoDataFromMiddleService(String id) {
-        String authorization = request.getHeader("Authorization");
-
         return webClient
                 .get()
                 .uri("/info/{id}", id)
-//                .header("Authorization", authorization)
                 .retrieve()
+                .onStatus(HttpStatus::is4xxClientError, response -> Mono.error(new ResponseStatusException(response.statusCode())))
                 .bodyToMono(MiddleInfoDataResponse.class)
                 .block();
     }
