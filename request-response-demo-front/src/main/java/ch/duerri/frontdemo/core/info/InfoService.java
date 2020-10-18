@@ -6,7 +6,6 @@ import ch.duerri.frontdemo.core.info.response.MiddleInfoDataResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.client.ClientRequest;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import javax.annotation.Resource;
@@ -25,12 +24,6 @@ public class InfoService {
         this.webClient = webClient
                 .mutate()
                 .baseUrl("http://localhost:8090/demo-middle")
-                .filter((request, next) -> {
-                    ClientRequest filtered = ClientRequest.from(request)
-                            .header(ApplicationConstants.HTTP_HEADER_PARAMETER_REQUEST_ID, getRequestId())
-                            .build();
-                    return next.exchange(filtered);
-                })
                 .build();
     }
 
@@ -62,7 +55,7 @@ public class InfoService {
         return webClient
                 .get()
                 .uri("/info/{id}", id)
-                .header("Authorization", authorization)
+//                .header("Authorization", authorization)
                 .retrieve()
                 .bodyToMono(MiddleInfoDataResponse.class)
                 .block();
